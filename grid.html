@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>GRID 01</title>
+    <script type="text/javascript" src="js/three.min.js"></script>
+    <script type="text/javascript" src="js/controls/FlyControls.js"></script>
+    <script src="js/shaders/UnpackDepthRGBAShader.js"></script>
+    <script src="js/utils/ShadowMapViewer.js"></script>
+  </head>
+  <body>
+
+  <script type="text/javascript">
+    const PIXEL_RATIO = 1;
+
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    // var renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize( width, height );
+    renderer.setPixelRatio( window.devicePixelRatio * PIXEL_RATIO );
+
+		// renderer.autoClear = false;
+		renderer.shadowMap.enabled = true;
+		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    document.body.appendChild(renderer.domElement);
+
+    if(PIXEL_RATIO<1) renderer.domElement.style.imageRendering = 'pixelated';
+
+    var scene = new THREE.Scene();
+
+    var camera = new THREE.PerspectiveCamera( 50, width/height, .1, 10000 );
+    // var cameraCompanion = box.clone();
+    // cameraCompanion.material = new THREE.MeshBasicMaterial({color:0x00ff00});
+    // cameraCompanion.position.y = 3;
+    // cameraCompanion.position.z = -45;
+    // camera.add(cameraCompanion);
+    //
+    // scene.add(camera);
+
+    var clock = new THREE.Clock();
+    clock.start();
+
+    var controls = new THREE.FlyControls(camera);
+    controls.movementSpeed = 1.0;
+    controls.rollSpeed = 0.1;
+
+    var box = new THREE.Mesh(
+      new THREE.SphereBufferGeometry(
+        2,
+        10,
+        10),
+      new THREE.MeshPhongMaterial({color:0xff0000})
+    );
+    // box.position.z = -30;
+    box.castShadow = true;
+    // scene.add(box);
+
+    const GRID_SIZE = 10;
+
+    var grid = [];
+    var objects = [];
+    for (var x = -3; x<=3; x++){
+      for (var y =-3; y<=3; y++){
+        for (var z =-3; z<=3; z++){
+          objects[objects.length] = new THREE.Mesh();
+          // grid[grid.length] = new THREE.Vector3(x*GRID_SIZE,y*GRID_SIZE,z*GRID_SIZE);
+          objects[objects.length] = box.clone();
+          objects[objects.length-1].position.set(x*GRID_SIZE,y*GRID_SIZE,z*GRID_SIZE);
+          scene.add(objects[objects.length-1]);
+        }
+
+      }
+    }
+
+
+
+
+		// GROUND
+		var ground = new THREE.Mesh(
+      new THREE.PlaneBufferGeometry( 100, 100 ),
+      new THREE.MeshPhongMaterial( { color: 0xffdd99 } )
+    );
+		ground.position.set( 0, -20, 0 );
+		ground.rotation.x = - Math.PI / 2;
+		ground.scale.set( 100, 100, 100 );
+		ground.castShadow = false;
+		ground.receiveShadow = true;
+		scene.add( ground );
+
+
+
+
+    // //Create a DirectionalLight and turn on shadows for the light
+    // var light = new THREE.DirectionalLight( 0xffffff, 1, 100 );
+    // light.position.set( 0, 100, 0 ); 			//default; light shining from top
+    // light.castShadow = true;            // default false
+    // scene.add( light );
+    //
+    // //Set up shadow properties for the light
+    // light.shadow.mapSize.width = 512;  // default
+    // light.shadow.mapSize.height = 512; // default
+    // light.shadow.camera.near = 0.5;       // default
+    // light.shadow.camera.far = 500      // default
+
+
+    //
+    //
+    // light = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI / 2 );
+    // light.position.set( 0, 300, 300 );
+    // light.target.position.set( 0, 0, 0 );
+    // light.castShadow = true;
+    // light.shadow = new THREE.LightShadow( new THREE.PerspectiveCamera( 50, 1, 1, 500 ) );
+    // light.shadow.bias = 0.0001;
+    // light.shadow.mapSize.width = 1024;
+    // light.shadow.mapSize.height = 1024;
+    // scene.add( light );
+
+    //Create a SpotLight and turn on shadows for the light
+      var light = new THREE.SpotLight( 0xffffff );
+      light.position.set( 0, 50, 0);
+      light.lookAt(0,0,0);
+      light.castShadow = true;            // default false
+      scene.add( light );
+
+      //Set up shadow properties for the light
+      light.shadow.mapSize.width = 1024;  // default
+      light.shadow.mapSize.height = 1024; // default
+      light.shadow.camera.near = 0.5;       // default
+      light.shadow.camera.far = 100      // default
+
+
+    var lightReverb = new THREE.DirectionalLight(0xffffff, .2);
+    lightReverb.position.y = -100;
+    scene.add(lightReverb);
+
+    function draw(){
+      var delta = clock.getDelta();
+
+      controls.update(delta);
+      renderer.render(scene,camera);
+
+      var time = performance.now() * 0.05;
+
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+
+
+    window.addEventListener('keyup', keys);
+    function keys(e){
+      var k = e.key;
+
+      if(k == 'l'){
+        cameraCompanion.visible = !cameraCompanion.visible;
+      }
+    }
+
+
+
+  </script>
+  </body>
+</html>

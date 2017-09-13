@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>GRID 01</title>
+    <script type="text/javascript" src="js/three.min.js"></script>
+    <script type="text/javascript" src="js/controls/FlyControls.js"></script>
+  </head>
+  <body>
+
+  <script type="text/javascript">
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize( width, height );
+    // renderer.setPixelRatio( window.devicePixelRatio * 0.5 );
+    document.body.appendChild(renderer.domElement);
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera( 50, width/height, .1, 10000 );
+
+    var clock = new THREE.Clock();
+    clock.start();
+
+    var controls = new THREE.FlyControls(camera);
+    controls.movementSpeed = 1.0;
+    controls.rollSpeed = 0.1;
+
+    var box = new THREE.Mesh(
+      new THREE.SphereBufferGeometry(
+        10,
+        10,
+        10),
+      new THREE.MeshBasicMaterial({color:0xff0000})
+    );
+
+    box.position.z = -30;
+    scene.add(box);
+
+    var cameraCompanion = box.clone();
+    cameraCompanion.material = new THREE.MeshBasicMaterial({color:0x00ff00});
+    cameraCompanion.position.y = 3;
+    cameraCompanion.position.z = -45;
+    camera.add(cameraCompanion);
+
+    scene.add(camera);
+
+
+    function draw(){
+      var delta = clock.getDelta();
+
+      controls.update(delta);
+      renderer.render(scene,camera);
+
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+
+
+    window.addEventListener('keyup', keys);
+    function keys(e){
+      var k = e.key;
+
+      if(k == 'l'){
+        cameraCompanion.visible = !cameraCompanion.visible;
+      }
+    }
+
+
+
+  </script>
+  </body>
+</html>
