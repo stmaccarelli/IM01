@@ -5,12 +5,27 @@
     <title>GRID 01</title>
     <script type="text/javascript" src="js/three.min.js"></script>
     <script type="text/javascript" src="js/controls/FlyControls.js"></script>
+
+    <script src="js/shaders/SSAOShader.js"></script>
+
+    <script src="js/shaders/CopyShader.js"></script>
+    <script src="js/shaders/HorizontalBlurShader.js"></script>
+    <script src="js/shaders/VerticalBlurShader.js"></script>
+    <script src="js/shaders/HorizontalTiltShiftShader.js"></script>
+    <script src="js/shaders/VerticalTiltShiftShader.js"></script>
+    <script src="js/shaders/FastDOFShader.js"></script>
+    <script src="js/postprocessing/EffectComposer.js"></script>
+    <script src="js/postprocessing/RenderPass.js"></script>
+    <script src="js/postprocessing/ShaderPass.js"></script>
+
     <script src="js/shaders/UnpackDepthRGBAShader.js"></script>
     <script src="js/utils/ShadowMapViewer.js"></script>
   </head>
   <body>
 
   <script type="text/javascript">
+
+
     const PIXEL_RATIO = 1;
 
     var width = window.innerWidth;
@@ -30,7 +45,7 @@
 
     var scene = new THREE.Scene();
 
-    var camera = new THREE.PerspectiveCamera( 50, width/height, .1, 10000 );
+    var camera = new THREE.PerspectiveCamera( 40, width/height, .1, 1000 );
     // var cameraCompanion = box.clone();
     // cameraCompanion.material = new THREE.MeshBasicMaterial({color:0x00ff00});
     // cameraCompanion.position.y = 3;
@@ -43,21 +58,22 @@
     clock.start();
 
     var controls = new THREE.FlyControls(camera);
-    controls.movementSpeed = 1.0;
-    controls.rollSpeed = 0.1;
+    controls.movementSpeed = 30.0;
+    controls.rollSpeed = .5;
 
     var box = new THREE.Mesh(
       new THREE.SphereBufferGeometry(
-        2,
+        1,
         10,
         10),
       new THREE.MeshPhongMaterial({color:0xff0000})
+      // new THREE.MeshDepthMaterial()
     );
     // box.position.z = -30;
     box.castShadow = true;
     // scene.add(box);
 
-    const GRID_SIZE = 10;
+    const GRID_SIZE = 4;
 
     var grid = [];
     var objects = [];
@@ -88,6 +104,12 @@
 		ground.castShadow = false;
 		ground.receiveShadow = true;
 		scene.add( ground );
+
+    var skybox = new THREE.Mesh(
+      new THREE.BoxBufferGeometry(3000,3000,3000),
+      new THREE.MeshBasicMaterial({color:0x00ff00, side:THREE.BackSide})
+    )
+    scene.add(skybox);
 
 
 
@@ -135,11 +157,53 @@
     lightReverb.position.y = -100;
     scene.add(lightReverb);
 
+
+
+    var target = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight );
+    target.texture.format = THREE.RGBFormat;
+    target.texture.minFilter = THREE.NearestFilter;
+    target.texture.magFilter = THREE.NearestFilter;
+    target.texture.generateMipmaps = false;
+    target.stencilBuffer = false;
+    target.depthBuffer = true;
+    target.depthTexture = new THREE.DepthTexture();
+    target.depthTexture.type = THREE.UnsignedShortType;
+
+    var depthMaterial = new THREE.MeshDepthMaterial();
+    // depthMaterial.depthPacking = THREE.RGBADepthPacking;
+
+
+    var composer = new THREE.EffectComposer( renderer );
+    composer.addPass( new THREE.RenderPass( scene, camera ) );
+    //
+    // var hblur = new THREE.ShaderPass( THREE.HorizontalTiltShiftShader );
+    // composer.addPass( hblur );
+    //
+    // var vblur = new THREE.ShaderPass( THREE.VerticalTiltShiftShader );
+    // vblur.renderToScreen = true;
+    // composer.addPass( vblur );
+
+    var dof = new THREE.ShaderPass( THREE.FastDOFShader );
+    dof.renderToScreen = true;
+    dof.uniforms.tDepth.value = target.texture;
+
+    composer.addPass( dof );
+
+
+
+
+
     function draw(){
       var delta = clock.getDelta();
 
       controls.update(delta);
-      renderer.render(scene,camera);
+      // renderer.render(scene,camera);
+      scene.overrideMaterial = depthMaterial;
+      renderer.render( scene, camera, target);
+      scene.overrideMaterial = null;
+
+      composer.render();
+
 
       var time = performance.now() * 0.05;
 
