@@ -47,7 +47,7 @@
 		<div id="notSupported" style="display:none">Sorry your graphics card + browser does not support hardware instancing</div>
 	</div>
 
-	<script src="js/three.min.js"></script>
+	<script src="js/three.js"></script>
 	<script src="js/shaders/UnpackDepthRGBAShader.js"></script>
 	<script src="js/AudioAnalyzerMultiSource.js"></script>
   <script src="js/libs/stats.min.js"></script>
@@ -123,6 +123,33 @@
 
 		var light;
 
+		// instantiate a loader
+		var loader = new THREE.JSONLoader();
+		var orca = null;
+
+		// load a resource
+		loader.load(
+
+			// resource URL
+			'obj/chainsaw.json',
+
+			// Function when resource is loaded
+			function ( geometry, materials ) {
+
+				// var material = materials[ 0 ];
+				// orca = geometry;//new THREE.Mesh( geometry, material );
+				orca = new THREE.BufferGeometry();
+				orca.scale(200,200,200);
+				orca.fromGeometry( geometry );
+
+			},
+			function(){},
+			function( e ){
+				console.log( e );
+			}
+		);
+
+
 
 		function init() {
 
@@ -157,11 +184,11 @@
 
 			var clearPlane = new THREE.Mesh(
 				new THREE.PlaneBufferGeometry(1,1),
-				new THREE.MeshBasicMaterial({color:0x111111, fog: false, transparent: true, opacity:.11})
+				new THREE.MeshBasicMaterial({color:0x111111, fog: false, transparent: true, opacity:.3})
 			);
 			// clearPlane.rotation.x = Math.PI;
-			clearPlane.scale.set( 10000,10000,10000 );
-			clearPlane.position.z = -1000;
+			clearPlane.scale.set( 30000,30000,30000 );
+			clearPlane.position.z = -3000;
 			camera.add(clearPlane);
 			scene.add(camera);
 
@@ -280,7 +307,8 @@
 
 				shader.vertexShader = shader.vertexShader.replace(
 					'#include <begin_vertex>',
-					'vec4 eye = vec4(0.2) + normalize(vec4(1.0) * viewMatrix) * 0.8; vec3 transformed = position * tscale * eye.zxy + translate * 500.0 ;',
+					// 'vec4 eye = vec4(0.2) + normalize(vec4(1.0) * viewMatrix) * 0.8; vec3 transformed = position * tscale * eye.zxy + translate * 500.0 ;',
+					'vec4 eye = vec4(0.2) + normalize(vec4(1.0) * viewMatrix) * 0.8; vec3 transformed = position * tscale + translate * 500.0 ;',
 				);
 
 				materialShader = shader;
@@ -398,8 +426,8 @@
 				startTime = performance.now() * 0.0005;
 			var time = performance.now() * 0.0005;
 
-			particles.material.opacity = 1 - (time - startTime) * 0.1;
-			mesh.material.opacity = (time - startTime) * 0.025;
+			// particles.material.opacity = 1 - (time - startTime) * 0.1;
+			// mesh.material.opacity = (time - startTime) * 0.025;
 
       var delta = clock.getDelta();
       controls.update( delta );
@@ -408,15 +436,15 @@
 
 			if ( materialShader ) {
 				// materialShader.uniforms.tscale.value = 500.0 + (Math.sin(time)+1 ) * 500.0;
-				materialShader.uniforms.tscale.value.set( 1 +  audioSmooth * 10, 1, 1);//+ (Math.sin(time)+1 ) * 500.0 );
+				materialShader.uniforms.tscale.value.set( 1 +  audioSmooth * 3, 1, 1);//+ (Math.sin(time)+1 ) * 500.0 );
 			}
 
 			// mesh.rotation.x = time * 0.2;
 			// mesh.rotation.y = time * 0.4;
 
 			if( light ) {
-				 light.distance = 500 + audio.getFreq(0) * 500 + (Math.sin(time)*.5+.5)*500;
-				 sky.material.color.setScalar( .7 + audio.getFreq(0)*.3 );
+				 light.distance =  audio.getFreq(2) * 500;
+				 sky.material.color.setScalar( audio.getFreq(2) );
 				//  light.decay = Math.sin(time)*2-1;
 			}
 
