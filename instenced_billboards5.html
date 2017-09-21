@@ -64,83 +64,35 @@
 
 
 	<script id="vshader" type="x-shader/x-vertex">
-		precision highp float;
-		uniform mat4 modelViewMatrix;
-		uniform mat4 projectionMatrix;
-		uniform float time;
+			// precision highp float;
+			// uniform mat4 modelViewMatrix;
+			// uniform mat4 projectionMatrix;
 
-		attribute vec3 position;
-		attribute vec2 uv;
+			// attribute vec3 position;
 
-		attribute vec3 translate;
-		attribute vec3 color;
+			// attribute float size;
+			attribute vec3 color;
+			varying vec3 vColor;
 
+			void main() {
+				vColor = color;
+				float size = 15.0;
+				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+				gl_PointSize = size;// * ( 300.0 / -mvPosition.z );
+				gl_Position = projectionMatrix * mvPosition;
+			}
 
-		varying vec2 vUv;
-		varying float vScale;
-		varying vec3 vColor;
-
-		void main() {
-
-			// vec4 mvPosition = modelViewMatrix * vec4( translate, 1.0 );
-			// vec3 trTime = vec3(translate.x + time,translate.y + time,translate.z + time);
-			// float scale =  sin( trTime.x * 2.1 ) + sin( trTime.y * 3.2 ) + sin( trTime.z * 4.3 );
-			// vScale = scale;
-			// scale = scale * 2.0 + 2.0;
-			// mvPosition.xyz += position; //* scale;
-			// vUv = uv;
-			// gl_Position = projectionMatrix * mvPosition;
-
-			vec4 mvPosition = modelViewMatrix * vec4( translate.xyz , 1.0 );
-			gl_Position = projectionMatrix * ( mvPosition + vec4( position, 0.0) ) ;
-
-			vUv = uv;
-			vColor = color;
-
-		}
 	</script>
 	<script id="fshader" type="x-shader/x-fragment">
-		precision highp float;
+		// precision highp float;
 
-		// uniform sampler2D map;
-
-		varying vec2 vUv;
-		varying float vScale;
-		varying vec3 vColor;
-
-
-		// HSL to RGB Convertion helpers
-		vec3 HUEtoRGB(float H){
-			H = mod(H,1.0);
-			float R = abs(H * 6.0 - 3.0) - 1.0;
-			float G = 2.0 - abs(H * 6.0 - 2.0);
-			float B = 2.0 - abs(H * 6.0 - 4.0);
-			return clamp(vec3(R,G,B),0.0,1.0);
-		}
-
-		vec3 HSLtoRGB(vec3 HSL){
-			vec3 RGB = HUEtoRGB(HSL.x);
-			float C = (1.0 - abs(2.0 * HSL.z - 1.0)) * HSL.y;
-			return (RGB - 0.5) * C + HSL.z;
-		}
-
-		void main() {
-			//determine center position
-			vec2 poss = vUv - vec2(0.5);
-
-			//determine the vector length of the center position
-			float len = length(poss);
-
-			//use smoothstep to create a smooth vignette
-			float vignette = smoothstep( 0.4 , 0.0001, len);
-
-			// vec4 diffuseColor = texture2D( map, vUv );
-			// gl_FragColor = vec4( diffuseColor.xyz * HSLtoRGB(vec3(vScale/5.0, 1.0, 0.5)), diffuseColor.w );
-			gl_FragColor = vec4( vColor + 0.5, vignette );
-			// gl_FragColor = vec4( vColor, 1.0 );
-
-			// if ( vignette < 0.5 ) discard;
-		}
+			uniform sampler2D texture;
+			varying vec3 vColor;
+			void main() {
+				gl_FragColor = vec4( vColor, 1.0 );
+				gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
+				if ( gl_FragColor.a < .9 ) discard;
+			}
 	</script>
 
 	<script>
@@ -150,6 +102,15 @@
 		var geometry, material, mesh;
 		var clock = new THREE.Clock();
 		clock.start();
+
+		var shaderMat = new THREE.ShaderMaterial( {
+				uniforms: {
+					texture: { value: new THREE.TextureLoader().load( "img/glow.png" ) }
+				},
+				vertexShader: document.getElementById( 'vshader' ).textContent,
+				fragmentShader: document.getElementById( 'fshader' ).textContent,
+				alphaTest: 0.9
+			} );
 
 		function init() {
 
@@ -198,22 +159,22 @@
 			geometry = new THREE.InstancedBufferGeometry();
 			geometry.copy( new THREE.CircleBufferGeometry( 1, 12 ) );
 
-			material = new THREE.RawShaderMaterial( {
-				uniforms: {
-					// map: { value: new THREE.TextureLoader().load( "img/glow.png" ) },
-					time: { value: 0.0 }
-				},
-				vertexShader: document.getElementById( 'vshader' ).textContent,
-				fragmentShader: document.getElementById( 'fshader' ).textContent,
-				depthTest: false,
-				depthWrite: false,
-				transparent: true
-			} );
+			// material = new THREE.RawShaderMaterial( {
+			// 	uniforms: {
+			// 		// map: { value: new THREE.TextureLoader().load( "img/glow.png" ) },
+			// 		time: { value: 0.0 }
+			// 	},
+			// 	vertexShader: document.getElementById( 'vshader' ).textContent,
+			// 	fragmentShader: document.getElementById( 'fshader' ).textContent,
+			// 	depthTest: false,
+			// 	depthWrite: false,
+			// 	transparent: true
+			// } );
 
 			// material.blending = THREE[ 'CustomBlending' ];
 			// material.blendSrc = THREE[ 'SrcAlphaFactor' ];
 			// material.blendDst = THREE[ 'OneMinusAlphaFactor' ];
-			material.blendEquation = THREE.AddEquation;
+			// material.blendEquation = THREE.AddEquation;
 
 
 			mesh = new THREE.Mesh( geometry, material );
@@ -248,22 +209,38 @@
 					// console.log( translateArray );
 					// console.log( geom.attributes.position );
 
-					var points = new THREE.Points(
+					// var points = new THREE.Points(
+					// 	geom,
+					// 	new THREE.PointsMaterial({
+					// 		size: 50,
+					// 		sizeAttenuation:true,
+					//     transparent: false,
+					// 		depthWrite: true,
+					//     //opacity: 0.2,
+					// 		//sizeAttenuation: false,
+					// 		map: new THREE.TextureLoader().load( "img/glow.png" ),
+					//     vertexColors: THREE.VertexColors,
+					// 		fog: false,
+					// 	})
+					// );
+					// points.scale.set(500,500,500);
+					// scene.add(points);
+
+					window.pointss = new THREE.Points(
 						geom,
 						new THREE.PointsMaterial({
-							size: 50,
-							sizeAttenuation:true,
-					    transparent: false,
-							depthWrite: true,
-					    //opacity: 0.2,
-							//sizeAttenuation: false,
 							map: new THREE.TextureLoader().load( "img/glow.png" ),
-					    vertexColors: THREE.VertexColors,
-							fog: false,
+							clipIntersection: true,
+							transparent: false,
+							vertexColors: THREE.VertexColors,
+							alphaTest: .1,
+							size:1,
+							frustumCulled:false
 						})
 					);
-					points.scale.set(500,500,500);
-					scene.add(points);
+					pointss.scale.set(20,20,20);
+					pointss.renderOrder = -1;
+					scene.add(pointss);
 
 					// geometry.attributes.translate.needsUpdate = true;
 				}
@@ -305,7 +282,7 @@
 
 			var time = performance.now() * 0.0005;
 
-			material.uniforms.time.value = time;
+			// material.uniforms.time.value = time;
 
 			// mesh.rotation.x = time * 0.2;
 			// mesh.rotation.y = time * 0.4;
