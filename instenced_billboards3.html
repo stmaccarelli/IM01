@@ -189,7 +189,7 @@
 
 
 
-			const instances = 30;
+			const instances = 50;
 			advance = 1 / Math.cbrt(instances);
 
 			var translateArrayRandom = [];
@@ -233,7 +233,7 @@
 
 			mesh = new THREE.Mesh( geometry, material );
 			mesh.scale.set( 500, 500, 500 );
-			mesh.frustumCulled = false;
+			mesh.frustumCulled = true;
 
 			scene.add( mesh );
 

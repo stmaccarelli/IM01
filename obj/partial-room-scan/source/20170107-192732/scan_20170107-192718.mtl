@@ -1,0 +1,62 @@
+# Evryway Scanner material file
+# contains 10 materials
+# - - - atlas_4
+newmtl atlas_4
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+illum 1
+map_Kd textures/atlas_4_maintex.png
+# - - - atlas_0
+newmtl atlas_0
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+illum 1
+map_Kd textures/atlas_0_maintex.png
+# - - - atlas_6
+newmtl atlas_6
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+illum 1
+map_Kd textures/atlas_6_maintex.png
+# - - - atlas_1
+newmtl atlas_1
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+illum 1
+map_Kd textures/atlas_1_maintex.png
+# - - - atlas_5
+newmtl atlas_5
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+illum 1
+map_Kd textures/atlas_5_maintex.png
+# - - - atlas_7
+newmtl atlas_7
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+illum 1
+map_Kd textures/atlas_7_maintex.png
+# - - - atlas_2
+newmtl atlas_2
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+illum 1
+map_Kd textures/atlas_2_maintex.png
+# - - - atlas_3
+newmtl atlas_3
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+illum 1
+map_Kd textures/atlas_3_maintex.png
+# - - - atlas_8
+newmtl atlas_8
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+illum 1
+map_Kd textures/atlas_8_maintex.png
+# - - - atlas_9
+newmtl atlas_9
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+illum 1
+map_Kd textures/atlas_9_maintex.png
